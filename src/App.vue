@@ -1,13 +1,15 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
+    <SimpleCalendar />
   </div>
 </template>
 
 <script>
+import SimpleCalendar from './components/SimpleCalendar.vue';
+
 export default {
   name: 'App',
-  components: {},
+  components: { SimpleCalendar },
 };
 </script>
 
