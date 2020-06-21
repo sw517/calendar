@@ -1,6 +1,8 @@
 <template>
   <div class="calendar">
-    <div class="calendar-heading">{{ `${activeMonth} ${activeYear}` }}</div>
+    <div class="calendar-heading">
+      {{ calendarHeading }}
+    </div>
     <div role="table" class="calendar-table">
       <div role="row" class="calendar-table__row">
         <div
@@ -22,8 +24,7 @@ export default {
   name: 'SimpleCalendar',
   data() {
     return {
-      activeMonth: 'May',
-      activeYear: '2019',
+      viewDate: null,
       days: [
         { short: 'Sun', long: 'Sunday' },
         { short: 'Mon', long: 'Monday' },
@@ -34,6 +35,29 @@ export default {
         { short: 'Sat', long: 'Saturday' },
       ],
     };
+  },
+  computed: {
+    calendarHeading() {
+      return `${this.getMonth(this.viewDate)} ${this.getYear(this.viewDate)}`;
+    },
+  },
+  created() {
+    this.setViewDate(this.getCurrentDate());
+  },
+  methods: {
+    setViewDate(date) {
+      this.viewDate = date;
+    },
+    getCurrentDate() {
+      return new Date();
+    },
+    getYear(date) {
+      return date.getFullYear();
+    },
+    getMonth(date) {
+      const options = { month: 'long' };
+      return new Intl.DateTimeFormat('en-GB', options).format(date);
+    },
   },
 };
 </script>
