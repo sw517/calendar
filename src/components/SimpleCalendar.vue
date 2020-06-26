@@ -2,6 +2,12 @@
   <div class="calendar">
     <div class="calendar-header">
       <button
+        @click="onCurrentDayBtnClick"
+        class="calendar-btn calendar-btn--today"
+      >
+        View today
+      </button>
+      <button
         :disabled="isPrevMonthDisabled"
         @click="onChangeMonthBtnClick(-1)"
         class="calendar-btn calendar-btn--prev"
@@ -224,6 +230,13 @@ export default {
      */
     onYearSelect(e) {
       this.setViewStartDate(new Date(e.target.value, this.viewMonth, 1));
+    },
+    /**
+     * Sets the calendar view to the current month on
+     * clicking the Current Day button.
+     */
+    onCurrentDayBtnClick() {
+      this.setViewStartDate(this.getCurrentDate());
     },
   },
 };
