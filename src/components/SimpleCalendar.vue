@@ -1,14 +1,26 @@
 <template>
   <div class="calendar">
     <div class="calendar-header">
+      <button
+        @click="handleBtnClick(-1)"
+        class="calendar-btn calendar-btn--prev"
+      >
+        &lt;
+      </button>
       <div class="calendar-heading">
         {{ calendarHeading }}
       </div>
+      <button
+        @click="handleBtnClick(1)"
+        class="calendar-btn calendar-btn--next"
+      >
+        &gt;
+      </button>
     </div>
     <div class="calendar-grid">
       <div
-        v-for="(day, i) in days"
-        :key="i"
+        v-for="day in days"
+        :key="day.long"
         :title="day.long"
         class="calendar-grid__day calendar-grid__day--heading"
       >
@@ -16,13 +28,20 @@
       </div>
       <div
         v-for="(day, i) in blankDaysInViewMonth"
-        :key="i"
+        :key="`blank-day-${i}`"
         class="calendar-grid__day calendar-grid__day--blank"
       />
       <div
         v-for="(day, i) in totalDaysInViewMonth"
-        :key="i"
+        :key="`day-${i}`"
         class="calendar-grid__day"
+        :class="{
+          'calendar-grid__day--active': isCurrentDay(
+            i + 1,
+            viewStartDate.getMonth(),
+            viewStartDate.getFullYear(),
+          ),
+        }"
       >
         {{ day }}
       </div>
@@ -53,21 +72,21 @@ export default {
 
       return `${this.getFullMonthFromDate(
         this.viewStartDate,
-      )} ${this.getFullYearFromDate(this.viewStartDate)}`;
+      )} ${this.viewStartDate.getFullYear()}`;
     },
     totalDaysInViewMonth() {
       if (!this.viewStartDate) return 0;
 
       return new Date(
-        this.getFullYearFromDate(this.viewStartDate),
-        this.viewStartDate.getMonth(),
+        this.viewStartDate.getFullYear(),
+        this.viewStartDate.getMonth() + 1,
         0,
       ).getDate();
     },
     blankDaysInViewMonth() {
       if (!this.totalDaysInViewMonth) return 0;
 
-      return this.viewStartDate.getDay() - 1;
+      return this.viewStartDate.getDay();
     },
   },
   created() {
@@ -75,27 +94,54 @@ export default {
   },
   methods: {
     setViewStartDate(date) {
-      const month = this.getFullMonthFromDate(date);
-      const year = this.getFullYearFromDate(date);
-      this.viewStartDate = new Date(`${month} 01, ${year} 00:00:00`);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      this.viewStartDate = new Date(year, month, 1);
     },
     getCurrentDate() {
       return new Date();
     },
-    getFullYearFromDate(date) {
-      return date.getFullYear();
-    },
     getFullMonthFromDate(date) {
       const options = { month: 'long' };
       return new Intl.DateTimeFormat('en-GB', options).format(date);
+    },
+    handleBtnClick(increment) {
+      this.setViewStartDate(
+        this.getPrevOrNextMonth(increment, this.viewStartDate),
+      );
+    },
+    getPrevOrNextMonth(increment, date) {
+      let newMonth, newYear;
+      const currMonth = date.getMonth();
+      const currYear = date.getFullYear();
+
+      if (currMonth === 0 && increment === -1) {
+        newMonth = 11;
+        newYear = currYear - 1;
+      } else if (currMonth === 11 && increment === 1) {
+        newMonth = 0;
+        newYear = currYear + 1;
+      } else {
+        newMonth = currMonth + increment;
+        newYear = currYear;
+      }
+
+      return new Date(newYear, newMonth, 1);
+    },
+    isCurrentDay(day, month, year) {
+      const checkedDay = new Date(year, month, day);
+      const today = this.getCurrentDate();
+
+      return checkedDay.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.calendar-box__header {
+.calendar-header {
   display: flex;
+  justify-content: space-between;
 }
 
 .calendar-grid {
@@ -107,5 +153,9 @@ export default {
   flex-grow: 0;
   flex-shrink: 0;
   flex-basis: calc(100% / 7);
+
+  &--active {
+    background: yellow;
+  }
 }
 </style>
