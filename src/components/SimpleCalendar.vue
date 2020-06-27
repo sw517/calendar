@@ -1,36 +1,62 @@
 <template>
   <div class="calendar">
     <div class="calendar-header">
-      <button
-        @click="onCurrentDayBtnClick"
-        class="calendar-btn calendar-btn--today"
-      >
-        View today
-      </button>
-      <button
-        :disabled="isPrevMonthDisabled"
-        @click="onChangeMonthBtnClick(-1)"
-        class="calendar-btn calendar-btn--prev"
-      >
-        &lt;
-      </button>
-      <select v-model="viewMonth" @change="onMonthSelect">
-        <option v-for="month in months" :key="month.index" :value="month.index">
-          {{ month.name }}
-        </option>
-      </select>
-      <select v-model="viewYear" @change="onYearSelect">
-        <option v-for="year in years" :key="year" :value="year">
-          {{ year }}
-        </option>
-      </select>
-      <button
-        :disabled="isNextMonthDisabled"
-        @click="onChangeMonthBtnClick(1)"
-        class="calendar-btn calendar-btn--next"
-      >
-        &gt;
-      </button>
+      <div class="calendar-header__current-date-container">
+        <div class="calendar-header__current-date">
+          {{ formattedCurrentDay }}
+        </div>
+        <transition name="fade-in-left">
+          <button
+            v-show="viewStartDate && !isCurrentMonth"
+            class="calendar-btn calendar-btn--today"
+            @click="onCurrentDayBtnClick"
+          >
+            View today
+          </button>
+        </transition>
+      </div>
+      <div class="calendar-header__controls">
+        <div class="calendar-header__controls__selects">
+          <select
+            v-model="viewMonth"
+            class="calendar-select"
+            @change="onMonthSelect"
+          >
+            <option
+              v-for="month in months"
+              :key="month.index"
+              :value="month.index"
+            >
+              {{ month.name }}
+            </option>
+          </select>
+          <select
+            v-model="viewYear"
+            class="calendar-select"
+            @change="onYearSelect"
+          >
+            <option v-for="year in years" :key="year" :value="year">
+              {{ year }}
+            </option>
+          </select>
+        </div>
+        <div class="calendar-header__controls__btns">
+          <button
+            :disabled="isPrevMonthDisabled"
+            @click="onChangeMonthBtnClick(-1)"
+            class="calendar-btn calendar-btn--prev"
+          >
+            &lt;
+          </button>
+          <button
+            :disabled="isNextMonthDisabled"
+            @click="onChangeMonthBtnClick(1)"
+            class="calendar-btn calendar-btn--next"
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
     </div>
     <div class="calendar-grid">
       <div
@@ -49,6 +75,7 @@
       <div
         v-for="(day, i) in totalDaysInViewMonth"
         :key="`day-${i}`"
+        :title="formatDate(day, viewMonth, viewYear)"
         class="calendar-grid__day"
         :class="{
           'calendar-grid__day--active': isCurrentDay(
@@ -58,7 +85,7 @@
           ),
         }"
       >
-        {{ day }}
+        <span class="calendar-grid__day__text">{{ day }}</span>
       </div>
     </div>
   </div>
@@ -127,6 +154,23 @@ export default {
     },
     isNextMonthDisabled() {
       return this.viewMonth === 11 && this.viewYear === this.maxYear;
+    },
+    isCurrentMonth() {
+      const currDate = new Date();
+      const currMonth = currDate.getMonth();
+      const currYear = currDate.getFullYear();
+      return currMonth === this.viewMonth && currYear === this.viewYear;
+    },
+    formattedCurrentDay() {
+      const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      };
+      return new Intl.DateTimeFormat('en-GB', options).format(
+        this.getCurrentDate(),
+      );
     },
   },
   watch: {
@@ -205,6 +249,16 @@ export default {
 
       return checkedDay.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
     },
+    formatDate(day, month, year) {
+      const date = new Date(year, month, day);
+      const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      };
+      return new Intl.DateTimeFormat('en-GB', options).format(date);
+    },
     /**
      * Sets a new date in the calendar view based on
      * the result from calling `getPrevOrNextMonth()`.
@@ -243,23 +297,142 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+$primary-color: #52ad9c;
+
+.calendar {
+  box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  border-radius: 4px;
+}
+
 .calendar-header {
-  display: flex;
-  justify-content: space-between;
+  background-color: $primary-color;
+  color: #fff;
+  padding: 15px;
+
+  @media screen and (min-width: 600px) {
+    padding: 20px 30px;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__selects {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    &__btns {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  }
+
+  &__current-date {
+    @media screen and (min-width: 600px) {
+      font-size: 30px;
+    }
+  }
+
+  &__current-date-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+
+    @media screen and (min-width: 600px) {
+      margin-bottom: 20px;
+    }
+  }
+}
+
+.calendar-select {
+  background: none;
+  border: 2px solid white;
+  border-radius: 999px;
+  color: white;
+  padding: 5px 8px;
+  margin-right: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+
+  option {
+    color: initial;
+  }
+
+  &:hover {
+    background-color: rgba(250, 250, 250, 0.2);
+  }
+
+  @media screen and (min-width: 600px) {
+    font-size: 16px;
+  }
+}
+
+.calendar-btn {
+  background: none;
+  border: 2px solid white;
+  border-radius: 999px;
+  color: white;
+  height: 30px;
+  min-width: 30px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(250, 250, 250, 0.2);
+  }
+
+  &--prev {
+    margin-right: 10px;
+  }
 }
 
 .calendar-grid {
   display: flex;
   flex-wrap: wrap;
+
+  &__day {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: calc(100% / 7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+
+    &--active {
+      .calendar-grid__day__text {
+        background-color: $primary-color;
+        color: #fff;
+        border-radius: 100%;
+      }
+    }
+  }
+
+  &__day__text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+  }
 }
 
-.calendar-grid__day {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: calc(100% / 7);
+/*  ================================
+    Transitions
+    ================================ */
 
-  &--active {
-    background: yellow;
-  }
+.fade-in-left-enter-active,
+.fade-in-left-leave-active {
+  transition: opacity ease 0.3s, transform ease 0.3s;
+}
+.fade-in-left-enter,
+.fade-in-left-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>
