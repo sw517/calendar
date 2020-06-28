@@ -1,93 +1,107 @@
 <template>
   <div class="calendar">
-    <div class="calendar-header">
-      <div class="calendar-header__current-date-container">
-        <div class="calendar-header__current-date">
-          {{ formattedCurrentDay }}
-        </div>
-        <transition name="fade-in-left">
-          <button
-            v-show="viewStartDate && !isCurrentMonth"
-            class="calendar-btn calendar-btn--today"
-            @click="onCurrentDayBtnClick"
-          >
-            View today
-          </button>
-        </transition>
-      </div>
-      <div class="calendar-header__controls">
-        <div class="calendar-header__controls__selects">
-          <select
-            v-model="viewMonth"
-            class="calendar-select"
-            @change="onMonthSelect"
-          >
-            <option
-              v-for="month in months"
-              :key="month.index"
-              :value="month.index"
+    <div class="calendar-wrap">
+      <div class="calendar-header">
+        <div class="calendar-header__current-date-container">
+          <div class="calendar-header__current-date">
+            {{
+              formatDate(
+                getCurrentDate().getDate(),
+                getCurrentDate().getMonth(),
+                getCurrentDate().getFullYear(),
+              )
+            }}
+          </div>
+          <transition name="fade-in-left">
+            <button
+              v-show="viewStartDate && !isCurrentMonth"
+              class="calendar-btn calendar-btn--today"
+              @click="onCurrentDayBtnClick"
             >
-              {{ month.name }}
-            </option>
-          </select>
-          <select
-            v-model="viewYear"
-            class="calendar-select"
-            @change="onYearSelect"
-          >
-            <option v-for="year in years" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </select>
+              View today
+            </button>
+          </transition>
         </div>
-        <div class="calendar-header__controls__btns">
-          <button
-            :disabled="isPrevMonthDisabled"
-            @click="onChangeMonthBtnClick(-1)"
-            class="calendar-btn calendar-btn--prev"
-          >
-            &lt;
-          </button>
-          <button
-            :disabled="isNextMonthDisabled"
-            @click="onChangeMonthBtnClick(1)"
-            class="calendar-btn calendar-btn--next"
-          >
-            &gt;
-          </button>
+        <div class="calendar-header__controls">
+          <div class="calendar-header__controls__selects">
+            <select
+              v-model="viewMonth"
+              class="calendar-select"
+              @change="onMonthSelect"
+            >
+              <option
+                v-for="month in months"
+                :key="month.index"
+                :value="month.index"
+              >
+                {{ month.name }}
+              </option>
+            </select>
+            <select
+              v-model="viewYear"
+              class="calendar-select"
+              @change="onYearSelect"
+            >
+              <option v-for="year in years" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
+          </div>
+          <div class="calendar-header__controls__btns">
+            <button
+              :disabled="isPrevMonthDisabled"
+              @click="onChangeMonthBtnClick(-1)"
+              class="calendar-btn calendar-btn--prev"
+            >
+              &lt;
+            </button>
+            <button
+              :disabled="isNextMonthDisabled"
+              @click="onChangeMonthBtnClick(1)"
+              class="calendar-btn calendar-btn--next"
+            >
+              &gt;
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="calendar-grid">
+        <div
+          v-for="day in days"
+          :key="day.long"
+          :title="day.long"
+          class="calendar-grid__day calendar-grid__day--heading"
+        >
+          <span>{{ day.short }}</span>
+        </div>
+        <div
+          v-for="(day, i) in blankDaysInViewMonth"
+          :key="`blank-day-${i}`"
+          class="calendar-grid__day calendar-grid__day--blank"
+        />
+        <div
+          v-for="(day, i) in totalDaysInViewMonth"
+          :key="`day-${i}`"
+          role="button"
+          :title="formatDate(day, viewMonth, viewYear)"
+          class="calendar-grid__day"
+          :class="{
+            'calendar-grid__day--active': isCurrentDay(day),
+            'calendar-grid__day--selected': isSelectedDay(day),
+          }"
+          @click="onCalendarDayClick(day)"
+        >
+          <span class="calendar-grid__day__text">{{ day }}</span>
         </div>
       </div>
     </div>
-    <div class="calendar-grid">
-      <div
-        v-for="day in days"
-        :key="day.long"
-        :title="day.long"
-        class="calendar-grid__day calendar-grid__day--heading"
-      >
-        <span>{{ day.short }}</span>
+    <transition name="fade-in-down">
+      <div v-show="selectedDate" class="calendar__selected">
+        <span class="calendar__selected-inner">
+          {{ selectedDate }}
+        </span>
       </div>
-      <div
-        v-for="(day, i) in blankDaysInViewMonth"
-        :key="`blank-day-${i}`"
-        class="calendar-grid__day calendar-grid__day--blank"
-      />
-      <div
-        v-for="(day, i) in totalDaysInViewMonth"
-        :key="`day-${i}`"
-        :title="formatDate(day, viewMonth, viewYear)"
-        class="calendar-grid__day"
-        :class="{
-          'calendar-grid__day--active': isCurrentDay(
-            i + 1,
-            viewStartDate.getMonth(),
-            viewStartDate.getFullYear(),
-          ),
-        }"
-      >
-        <span class="calendar-grid__day__text">{{ day }}</span>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
@@ -124,6 +138,7 @@ export default {
       ],
       minYear: 1900,
       maxYear: 2100,
+      selectedDate: null,
     };
   },
   computed: {
@@ -161,22 +176,12 @@ export default {
       const currYear = currDate.getFullYear();
       return currMonth === this.viewMonth && currYear === this.viewYear;
     },
-    formattedCurrentDay() {
-      const options = {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      };
-      return new Intl.DateTimeFormat('en-GB', options).format(
-        this.getCurrentDate(),
-      );
-    },
   },
   watch: {
     viewStartDate() {
       this.viewMonth = this.viewStartDate.getMonth();
       this.viewYear = this.viewStartDate.getFullYear();
+      this.selectedDate = null;
     },
   },
   created() {
@@ -239,16 +244,34 @@ export default {
      * the current day and returns true if the date is the
      * same.
      * @param {number} day The day index of the compared date.
-     * @param {number} month The month index of the compared date.
-     * @param {number} year The full year of the compared date.
      * @return {boolean} True if the compared day is today.
      */
-    isCurrentDay(day, month, year) {
-      const checkedDay = new Date(year, month, day);
+    isCurrentDay(day) {
+      const checkedDay = new Date(this.viewYear, this.viewMonth, day);
       const today = this.getCurrentDate();
 
       return checkedDay.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
     },
+    /**
+     * Checks if the day in the calendar view is currently
+     * selected.
+     * @param {number} day The day index of the compared date.
+     * @return {boolean} True if the compared day is today.
+     */
+    isSelectedDay(day) {
+      if (!this.selectedDate) return null;
+
+      const checkedDay = new Date(this.viewYear, this.viewMonth, day);
+      const selected = new Date(this.selectedDate);
+
+      return checkedDay.setHours(0, 0, 0, 0) === selected.setHours(0, 0, 0, 0);
+    },
+    /**
+     * Formats a date as such: 'Sunday, 28 June 2020'
+     * @param {number} day The day index of the date.
+     * @param {number} week The month index of the date.
+     * @param {number} year The full year of the date.
+     */
     formatDate(day, month, year) {
       const date = new Date(year, month, day);
       const options = {
@@ -292,14 +315,31 @@ export default {
     onCurrentDayBtnClick() {
       this.setViewStartDate(this.getCurrentDate());
     },
+    /**
+     * Sets the selectedDate to the day clicked in the
+     * calendar on clicking the day.
+     * Toggle the selectedDate to null if it has already been clicked.
+     * @param {number} day The day index to set selectedDate to.
+     */
+    onCalendarDayClick(day) {
+      if (
+        this.selectedDate ===
+        this.formatDate(day, this.viewMonth, this.viewYear)
+      ) {
+        this.selectedDate = null;
+      } else {
+        this.selectedDate = this.formatDate(day, this.viewMonth, this.viewYear);
+      }
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
 $primary-color: #52ad9c;
+$secondary-color: #319a87;
 
-.calendar {
+.calendar-wrap {
   box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   border-radius: 4px;
@@ -373,6 +413,26 @@ $primary-color: #52ad9c;
   }
 }
 
+.calendar__selected {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  &-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: $primary-color;
+    color: #fff;
+    border-radius: 999px;
+    min-height: 44px;
+    min-width: 240px;
+  }
+}
+
 .calendar-btn {
   background: none;
   border: 2px solid white;
@@ -394,6 +454,7 @@ $primary-color: #52ad9c;
 .calendar-grid {
   display: flex;
   flex-wrap: wrap;
+  padding-bottom: 10px;
 
   &__day {
     flex-grow: 0;
@@ -406,10 +467,19 @@ $primary-color: #52ad9c;
 
     &--active {
       .calendar-grid__day__text {
+        box-shadow: 0 0 0 2px $secondary-color;
+      }
+    }
+
+    &--selected {
+      .calendar-grid__day__text {
         background-color: $primary-color;
         color: #fff;
-        border-radius: 100%;
       }
+    }
+
+    &:not(.calendar-grid__day--blank):not(.calendar-grid__day--heading) {
+      cursor: pointer;
     }
   }
 
@@ -419,6 +489,7 @@ $primary-color: #52ad9c;
     justify-content: center;
     width: 30px;
     height: 30px;
+    border-radius: 999px;
   }
 }
 
@@ -434,5 +505,15 @@ $primary-color: #52ad9c;
 .fade-in-left-leave-to {
   opacity: 0;
   transform: translateX(30px);
+}
+
+.fade-in-down-enter-active,
+.fade-in-down-leave-active {
+  transition: opacity ease 0.3s, transform ease 0.3s;
+}
+.fade-in-down-enter,
+.fade-in-down-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
 }
 </style>
