@@ -1,14 +1,14 @@
 <template>
   <div>
-    <Pizzaria class="max-width-700 ml-auto mr-auto" />
+    <PizzariaSolution />
   </div>
 </template>
 
 <script>
-import Pizzaria from '../components/Pizzaria.vue';
+import PizzariaSolution from '../components/PizzariaSolution.vue';
 
 export default {
   name: 'App',
-  components: { Pizzaria },
+  components: { PizzariaSolution },
 };
 </script>
