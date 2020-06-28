@@ -1,15 +1,17 @@
 <template>
   <div id="app">
     <SimpleCalendar class="max-width-700 ml-auto mr-auto" />
+    <Pizzaria />
   </div>
 </template>
 
 <script>
 import SimpleCalendar from './components/SimpleCalendar.vue';
+import Pizzaria from './components/Pizzaria.vue';
 
 export default {
   name: 'App',
-  components: { SimpleCalendar },
+  components: { SimpleCalendar, Pizzaria },
 };
 </script>
 
