@@ -1,19 +1,12 @@
 <template>
   <div id="app">
-    <SimpleCalendar class="max-width-700 ml-auto mr-auto" />
-    <Pizzaria />
+    <div id="nav">
+      <router-link to="/">Calendar</router-link> |
+      <router-link to="/pizza">Pizzaria Solution</router-link>
+    </div>
+    <router-view />
   </div>
 </template>
-
-<script>
-import SimpleCalendar from './components/SimpleCalendar.vue';
-import Pizzaria from './components/Pizzaria.vue';
-
-export default {
-  name: 'App',
-  components: { SimpleCalendar, Pizzaria },
-};
-</script>
 
 <style lang="scss">
 #app {
@@ -22,18 +15,18 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 
-.mr-auto {
-  margin-right: auto;
-}
+#nav {
+  padding: 30px;
 
-.ml-auto {
-  margin-left: auto;
-}
+  a {
+    font-weight: bold;
+    color: #2c3e50;
 
-.max-width-700 {
-  max-width: 700px;
+    &.router-link-exact-active {
+      color: #42b983;
+    }
+  }
 }
 </style>
