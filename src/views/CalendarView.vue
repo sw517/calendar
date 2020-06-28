@@ -12,17 +12,3 @@ export default {
   components: { SimpleCalendar },
 };
 </script>
-
-<style lang="scss">
-.mr-auto {
-  margin-right: auto;
-}
-
-.ml-auto {
-  margin-left: auto;
-}
-
-.max-width-700 {
-  max-width: 700px;
-}
-</style>

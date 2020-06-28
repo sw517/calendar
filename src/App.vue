@@ -29,4 +29,28 @@
     }
   }
 }
+
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mr-auto {
+  margin-right: auto;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.max-width-700 {
+  max-width: 700px;
+}
+
+.max-width-400 {
+  max-width: 400px;
+}
 </style>
