@@ -1,4 +1,4 @@
-# Calendar/ Pizzaria Solution
+# Calendar
 
 ## Project setup
 ```
